@@ -1,17 +1,22 @@
-require("dotenv").config();
-const express = require("express");
-const mongoose = require("mongoose");
-const cors = require("cors");
-const cookieParser = require("cookie-parser");
+// index.js
+require('dotenv').config();
+const express = require('express');
+const mongoose = require('mongoose');
+const cors = require('cors');
+const cookieParser = require('cookie-parser');
 
-const authRoutes = require("./routes/authRoutes");
+const trafficRoutes = require('./routes/traffic');
+const authRoutes = require('./routes/authRoutes');
 
 const app = express();
-const dbUrl = process.env.ATLASDB_URL;
 
+// Use environment variable for MongoDB URI
+const dbUrl =  'mongodb://localhost:27017/trafficDB';
+
+// CORS configuration
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: 'http://localhost:5173',
     credentials: true,
   })
 );
@@ -22,11 +27,13 @@ app.use(express.urlencoded({ extended: false }));
 
 mongoose
   .connect(dbUrl)
-  .then(() => console.log("Connected to DB"))
-  .catch((err) => console.log("DB connection error:", err));
+  .then(() => console.log('Connected to MongoDB'))
+  .catch((err) => console.error('Could not connect to MongoDB:', err));
 
-app.use("/", authRoutes);
+app.use('/api/traffic', trafficRoutes);
+app.use('/', authRoutes);
 
-app.listen(3001, () => {
-  console.log("Server is running on port 3001");
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
 });

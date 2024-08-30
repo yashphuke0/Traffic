@@ -1,6 +1,8 @@
 // controllers/authController.js
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const Locality = require('../models/locality');
+
 const EmployeeModel = require("../models/Employee");
 
 function generateUsername(name, phoneNumber) {
@@ -11,16 +13,34 @@ function generateUsername(name, phoneNumber) {
 
 exports.register = async (req, res) => {
   try {
-    const { email, password, confirmPassword, name, phoneNumber, locality } =
-      req.body;
+    const { email, password, confirmPassword, name, phoneNumber, locality } = req.body;
 
     if (password !== confirmPassword) {
       return res.status(400).json({ error: "Passwords do not match" });
     }
 
+    // Check if the locality exists
+    const existingLocality = await Locality.findOne({ name: locality });
+
+    if (!existingLocality) {
+      return res.status(400).json({ error: "The specified locality does not exist" });
+    }
+
+    // Check if the phone number or email already exists
+    const existingEmail = await EmployeeModel.findOne({ email });
+    const existingPhoneNumber = await EmployeeModel.findOne({ phoneNumber });
+
+    if (existingEmail || existingPhoneNumber) {
+      return res.status(400).json({ error: "Email or Phone Number already exists" });
+    }
+
+    // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Generate a username
     const username = generateUsername(name, phoneNumber);
 
+    // Create a new employee
     const newEmployee = new EmployeeModel({
       email,
       password: hashedPassword,
@@ -30,12 +50,15 @@ exports.register = async (req, res) => {
       username,
     });
 
+    // Save the employee to the database
     await newEmployee.save();
     res.json({ message: "User registered successfully", username });
+
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
+
 
 exports.login = async (req, res) => {
   try {
