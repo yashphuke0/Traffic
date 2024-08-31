@@ -21,7 +21,7 @@ function Login() {
       if (response.data.message === "Login successful") {
         // Update user context
         setUser(response.data.user); // Assuming the API returns user data
-        navigate("/home");
+        navigate("/dashboard");
       } else {
         alert("Login failed: " + response.data.error);
       }

@@ -11,7 +11,7 @@ const authRoutes = require('./routes/authRoutes');
 const app = express();
 
 // Use environment variable for MongoDB URI
-const dbUrl =  'mongodb://localhost:27017/trafficDB';
+const dbUrl =  process.env.ATLASDB_URL
 
 // CORS configuration
 app.use(
@@ -27,7 +27,7 @@ app.use(express.urlencoded({ extended: false }));
 
 mongoose
   .connect(dbUrl)
-  .then(() => console.log('Connected to MongoDB'))
+  .then(() => console.log('Connected to Database'))
   .catch((err) => console.error('Could not connect to MongoDB:', err));
 
 app.use('/api/traffic', trafficRoutes);
